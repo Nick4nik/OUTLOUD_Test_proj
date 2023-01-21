@@ -19,10 +19,15 @@
             return await _db.Users.FirstOrDefaultAsync(x => x.Token == token);
         }
 
-        public async Task<Guid?> Login(string login, string password)
+        public async Task<Guid?> LoginReturnsToken(string login, string password)
         {
             var user = await _db.Users.FirstOrDefaultAsync(x => x.Login == login && x.Password == password);
             return user?.Token;
+        }
+
+        public async Task<User> Login(string login, string password)
+        {
+            return await _db.Users.FirstOrDefaultAsync(x => x.Login == login && x.Password == password);
         }
     }
 }

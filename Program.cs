@@ -1,6 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
 
-
 string connection = builder.Configuration.GetConnectionString("MySQL")!;
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
@@ -13,10 +12,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddVersionedApiExplorer(setup =>
+builder.Services.AddVersionedApiExplorer(options =>
 {
-    setup.GroupNameFormat = "'v'VVV";
-    setup.SubstituteApiVersionInUrl = true;
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 builder.Services.AddApiVersioning(options =>
@@ -25,51 +24,17 @@ builder.Services.AddApiVersioning(options =>
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
 
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "RSS Web-API with POST", Version = "v1.0" });
+builder.Services.AddCustomAuthentication();
 
-    c.SwaggerDoc("v2", new OpenApiInfo { Title = "RSS Web-API with GET", Version = "v2.0" });
-
-    c.DocInclusionPredicate((version, desc) =>
-    {
-        var endpointMetadata = desc.ActionDescriptor.EndpointMetadata;
-
-        if (!desc.TryGetMethodInfo(out MethodInfo methodInfo))
-            return false;
-
-        var specificVersion = endpointMetadata
-                .Where(data => data is MapToApiVersionAttribute)
-                .SelectMany(data => (data as MapToApiVersionAttribute)!.Versions)
-                .Select(apiVersion => apiVersion.ToString())
-                .SingleOrDefault();
-
-        if (!string.IsNullOrEmpty(specificVersion))
-            return $"v{specificVersion[..^2]}" == version;
-
-        var versions = endpointMetadata
-                .Where(data => data is ApiVersionAttribute)
-                .SelectMany(data => (data as ApiVersionAttribute)!.Versions)
-                .Select(apiVersion => apiVersion.ToString());
-
-        return versions.Any(v => $"v{v}.0" == version);
-    });
-});
+builder.Services.AddCustomSwaggerDocumentation();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint($"/swagger/v1/swagger.json", $"RSS Web-API with POST v1.0");
-        c.SwaggerEndpoint($"/swagger/v2/swagger.json", $"RSS Web-API with GET v2.0");
-    });
-}
+app.UseCustomSwaggerDocumentation();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

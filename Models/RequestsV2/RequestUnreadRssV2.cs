@@ -1,6 +1,6 @@
-﻿namespace OUTLOUD_Test_proj.Models.Requests
+﻿namespace OUTLOUD_Test_proj.Models.RequestsV2
 {
-    public class RequestUnreadRss : BaseRequest
+    public class RequestUnreadRssV2
     {
         public DateTime Date { get; set; }
         public int AddDays { get; set; }

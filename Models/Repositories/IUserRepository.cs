@@ -4,6 +4,7 @@
     {
         Task<List<User>> GetAllUsers();
         Task<User?> IsValidAuth(Guid token);
-        Task<Guid?> Login(string login, string password);
+        Task<Guid?> LoginReturnsToken(string login, string password);
+        Task<User> Login(string login, string password);
     }
 }

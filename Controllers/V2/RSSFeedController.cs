@@ -1,12 +1,12 @@
 ﻿namespace OUTLOUD_Test_proj.Controllers.V2
 {
-    [ApiController]
-    [ApiVersion("2.0")]
+    [ApiVersion("2.0"), ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/v{version:apiVersion}/[controller]", Name = "RSS Controller")]
     public class RSSFeedController : Controller
     {
         private readonly IRssRepository _rssRepo;
-        private readonly IUserRepository _userRepo;
+        private readonly User? _user;
         private readonly XmlWriterSettings _setting;
         private const string contentType = "application/rss+xml;charset=utf-8";
 
@@ -15,7 +15,7 @@
         public RSSFeedController(IRssRepository rssRepo, IUserRepository userRepo)
         {
             _rssRepo = rssRepo;
-            _userRepo = userRepo;
+            _user = LoginController.LoggedUser;
             _setting = new XmlWriterSettings
             {
                 Encoding = Encoding.UTF8,
@@ -29,53 +29,56 @@
             };
         }
 
-        [HttpPost("GetRssFeed")]
+        [HttpGet("GetRssFeed")]
         [MapToApiVersion("2.0")]
-        public async Task<ActionResult> GetRssFeed([FromBody] BaseRequest request)
+        public async Task<ActionResult> GetRssFeed()
         {
-            var user = await CheckUser(request);
-            if (user is null)
-                return Unauthorized();
+            var rssList = await _rssRepo.GetAllRss(_user!);
 
-            //Feed.Items = await _rssRepo.GetAllRss(user);
+            Feed.Items = CreateFeedItems(rssList);
+
             return GetResult();
         }
 
         [HttpPost("AddRss")]
         [MapToApiVersion("2.0")]
-        public async Task<ActionResult> AddRss([FromBody] RequestAddRss request)
+        public async Task<ActionResult> AddRss([FromBody] RequestAddRssV2 request)
         {
-            var user = await CheckUser(request);
-            if (user is null)
-                return Unauthorized();
-
-            if (await _rssRepo.AddRss(user, request.Link))
+            if (!await _rssRepo.AddRss(_user!, request.Link))
                 return BadRequest();
 
             return Ok();
         }
 
-        [HttpPost("GetUnreadRss")]
+        [HttpGet("GetUnreadRss")]
         [MapToApiVersion("2.0")]
-        public async Task<ActionResult> GetUnreadRss([FromBody] RequestUnreadRss request)
+        public async Task<ActionResult> GetUnreadRss()
         {
-            var user = await CheckUser(request);
-            if (user is null)
-                return Unauthorized();
+            var rssList = await _rssRepo.GetUnreadRss(_user!);
 
-            //Feed.Items = await _rssRepo.GetUnreadRss(user);
+            Feed.Items = CreateFeedItems(rssList);
+
+            return GetResult();
+        }
+
+        [HttpPost("GetUnreadRssWithDate")]
+        [MapToApiVersion("2.0")]
+        public async Task<ActionResult> GetUnreadRssWithDate([FromBody] RequestUnreadRssV2 request)
+        {
+            var rssList = await _rssRepo.GetUnreadRssWithDate(_user!, request.Date.AddDays(request.AddDays));
+
+            Feed.Items = CreateFeedItems(rssList);
+
             return GetResult();
         }
 
         [HttpPut("SetRssAsRead")]
         [MapToApiVersion("2.0")]
-        public async Task<ActionResult> SetRssAsRead([FromBody] BaseRequest request)
+        public async Task<ActionResult> SetRssAsRead([FromBody] RequestSetAsReadV2 request)
         {
-            var user = await CheckUser(request);
-            if (user is null)
-                return Unauthorized();
+            if (await _rssRepo.SetRssAsRead(_user!, request.Link))
+                return BadRequest();
 
-            await _rssRepo.SetRssAsRead(user);
             return Ok();
         }
 
@@ -91,9 +94,14 @@
         }
 
         [NonAction]
-        private async Task<User?> CheckUser(BaseRequest request)
+        private static List<SyndicationItem> CreateFeedItems(List<RSS> rssList)
         {
-            return await _userRepo.IsValidAuth(request.Token);
+            List<SyndicationItem> result = new();
+
+            foreach (var rss in rssList)
+                result.Add(new(rss.Title, rss.Content, new Uri(rss.Link), rss.Id.ToString(), rss.Created));
+
+            return result;
         }
     }
 }

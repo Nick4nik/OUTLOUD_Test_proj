@@ -1,7 +1,6 @@
 ﻿namespace OUTLOUD_Test_proj.Controllers
 {
-    [ApiController]
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0"), ApiController]
     [Route("api/v{version:apiVersion}/[controller]", Name = "RSS Controller")]
     public class RSSFeedController : Controller
     {
@@ -29,11 +28,10 @@
             };
         }
 
-        [HttpGet("GetRssFeed")]
+        [HttpPost("GetRssFeed")]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult> GetRssFeed([FromBody] BaseRequest request)
         {
-
             var user = await CheckUser(request);
             if (user is null)
                 return Unauthorized();
@@ -53,7 +51,7 @@
             if (user is null)
                 return Unauthorized();
 
-            if (await _rssRepo.AddRss(user, request.Link))
+            if (!await _rssRepo.AddRss(user, request.Link))
                 return BadRequest();
 
             return Ok();
@@ -61,7 +59,7 @@
 
         [HttpPost("GetUnreadRss")]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult> GetUnreadRss([FromBody] RequestUnreadRss request)
+        public async Task<ActionResult> GetUnreadRss([FromBody] BaseRequest request)
         {
             var user = await CheckUser(request);
             if (user is null)
@@ -74,15 +72,33 @@
             return GetResult();
         }
 
-        [HttpPut("SetRssAsRead")]
+        [HttpPost("GetUnreadRssWithDate")]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult> SetRssAsRead([FromBody] BaseRequest request)
+        public async Task<ActionResult> GetUnreadRssWithDate([FromBody] RequestUnreadRss request)
         {
             var user = await CheckUser(request);
             if (user is null)
                 return Unauthorized();
 
-            await _rssRepo.SetRssAsRead(user);
+
+            var rssList = await _rssRepo.GetUnreadRssWithDate(user, request.Date.AddDays(request.AddDays));
+
+            Feed.Items = CreateFeedItems(rssList);
+
+            return GetResult();
+        }
+
+        [HttpPut("SetRssAsRead")]
+        [MapToApiVersion("1.0")]
+        public async Task<ActionResult> SetRssAsRead([FromBody] RequestSetAsRead request)
+        {
+            var user = await CheckUser(request);
+            if (user is null)
+                return Unauthorized();
+
+            if (!await _rssRepo.SetRssAsRead(user, request.Link))
+                return BadRequest();
+
             return Ok();
         }
 
@@ -104,7 +120,7 @@
         }
 
         [NonAction]
-        private List<SyndicationItem> CreateFeedItems(List<RSS> rssList)
+        private static List<SyndicationItem> CreateFeedItems(List<RSS> rssList)
         {
             List<SyndicationItem> result = new();
 

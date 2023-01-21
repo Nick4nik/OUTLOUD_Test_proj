@@ -1,0 +1,12 @@
+﻿global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.Versioning;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.OpenApi.Models;
+global using OUTLOUD_Test_proj.Models;
+global using OUTLOUD_Test_proj.Models.Repositories;
+global using OUTLOUD_Test_proj.Models.Requests;
+global using Swashbuckle.AspNetCore.SwaggerGen;
+global using System.Reflection;
+global using System.ServiceModel.Syndication;
+global using System.Text;
+global using System.Xml;

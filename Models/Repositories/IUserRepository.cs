@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Models.Repositories
+﻿namespace Web_API_tests.Models.Repositories
 {
     public interface IUserRepository
     {

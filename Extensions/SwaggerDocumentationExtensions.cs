@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Extensions
+﻿namespace Web_API_tests.Extensions
 {
     public static class SwaggerDocumentationExtensions
     {

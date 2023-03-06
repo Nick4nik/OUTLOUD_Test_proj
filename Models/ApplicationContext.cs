@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Models
+﻿namespace Web_API_tests.Models
 {
     public class ApplicationContext : DbContext
     {

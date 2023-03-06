@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Models.Requests
+﻿namespace Web_API_tests.Models.Requests
 {
     public class RequestSetAsRead : BaseRequest
     {

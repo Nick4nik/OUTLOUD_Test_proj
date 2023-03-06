@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Models.RequestsV2
+﻿namespace Web_API_tests.Models.RequestsV2
 {
     public class RequestUnreadRssV2
     {

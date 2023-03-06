@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Controllers
+﻿namespace Web_API_tests.Controllers
 {
     [ApiVersion("1.0"), ApiController]
     [Route("api/v{version:apiVersion}/[controller]", Name = "Login Controller")]

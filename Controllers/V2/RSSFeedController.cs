@@ -1,4 +1,4 @@
-﻿namespace OUTLOUD_Test_proj.Controllers.V2
+﻿namespace Web_API_tests.Controllers.V2
 {
     [ApiVersion("2.0"), ApiController]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
